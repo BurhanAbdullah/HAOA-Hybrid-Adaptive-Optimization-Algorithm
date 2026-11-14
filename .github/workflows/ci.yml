@@ -41,3 +41,33 @@ jobs:
         run: |
           python -c "from HAOA.algorithm.haoa import HAOA"
           python -c "from HAOA.experiments.benchmark_manager import BenchmarkManager; assert len(BenchmarkManager().get_all_benchmarks()) == 5"
+      - name: Run complete benchmark suite and HAOA-vs-PSO comparison
+        if: matrix.python-version == '3.11'
+        run: |
+          python -m HAOA.experiments.full_runner
+          python -m HAOA.experiments.dataset_comparison
+          python - <<'PY'
+          import csv
+          from pathlib import Path
+
+          summary = Path("HAOA/results/csv/summary.csv")
+          convergence = Path("HAOA/results/csv/convergence.csv")
+          comparison = Path("HAOA/results/benchmark_comparison.csv")
+          expected = [
+              Path("HAOA/results/Ackley_comparison.png"),
+              Path("HAOA/results/Griewank_comparison.png"),
+              Path("HAOA/results/Rastrigin_comparison.png"),
+              Path("HAOA/results/Rosenbrock_comparison.png"),
+          ]
+          for path in [summary, convergence, comparison, *expected]:
+              assert path.is_file() and path.stat().st_size > 0, f"Missing output: {path}"
+
+          with comparison.open(newline="", encoding="utf-8") as handle:
+              rows = list(csv.DictReader(handle))
+          assert len(rows) == 4, f"Expected 4 comparison benchmarks, got {len(rows)}"
+          for row in rows:
+              assert row["Benchmark"]
+              assert float(row["HAOA Score"]) >= 0
+              assert float(row["PSO Score"]) >= 0
+          print("Full benchmark and HAOA-vs-PSO comparison outputs verified.")
+          PY

@@ -1,212 +1,96 @@
 # HAOA — Hybrid Adaptive Optimization Algorithm
 
-HAOA (Hybrid Adaptive Optimization Algorithm) is a research-oriented hybrid metaheuristic optimization framework developed for solving difficult nonlinear and multimodal optimization problems.
+HAOA is a research-oriented, bounded, population-based minimization algorithm. This repository includes the HAOA implementation, standard numerical benchmark functions, a PSO baseline, experiment runners, and CSV/plot exporters.
 
-The framework combines:
+## Features
 
-- Adaptive learning
-- Velocity-based optimization
-- Mutation refinement
-- Elite exploitation
-- Lévy-flight exploration
-- Dynamic convergence control
+- Hybrid exploration and elite-directed exploitation
+- Adaptive velocity, mutation, and stagnation-triggered Lévy exploration
+- Scalar and per-dimension bounds
+- Reproducible runs through an explicit random seed
+- Sphere, Rastrigin, Rosenbrock, Ackley, and Griewank benchmarks
+- HAOA/PSO comparison and experiment output in CSV/PNG formats
 
-HAOA is benchmarked against Particle Swarm Optimization (PSO) on multiple standard optimization landscapes.
-
----
-
-# Features
-
-- Adaptive optimization
-- Benchmark testing framework
-- HAOA vs PSO comparison
-- CSV result export
-- PNG convergence plots
-- Convergence analysis
-- Research-style experimentation
-- Dataset optimization support
-- Visualization modules
-- Modular benchmark architecture
-
----
-
-# Algorithms Included
-
-- HAOA (Hybrid Adaptive Optimization Algorithm)
-- Particle Swarm Optimization (PSO)
-
----
-
-# Benchmark Functions
-
-The framework currently supports:
-
-- Sphere
-- Rastrigin
-- Rosenbrock
-- Ackley
-- Griewank
-
-These benchmarks include:
-- unimodal landscapes
-- multimodal landscapes
-- deceptive valleys
-- rugged optimization surfaces
-
----
-
-# Project Structure
+## Repository layout
 
 ```text
 HAOA/
-│
-├── algorithm/
-│   └── haoa.py
-│
+├── algorithm/haoa.py
 ├── benchmark_functions/
-│   ├── sphere.py
-│   ├── rastrigin.py
-│   ├── ackley.py
-│   ├── griewank.py
-│   └── rosenbrock.py
-│
-├── comparison_algorithms/
-│   └── pso.py
-│
-├── datasets/
-│   └── sample_dataset.py
-│
+├── comparison_algorithms/pso.py
 ├── experiments/
+│   ├── benchmark_manager.py
+│   ├── csv_exporter.py
 │   ├── dataset_comparison.py
-│   ├── full_runner.py
-│   └── benchmark_manager.py
-│
-├── visualization/
-│   ├── advanced_plots.py
-│   └── final_comparison.py
-│
+│   └── full_runner.py
 ├── results/
-│   ├── csv/
-│   ├── figures/
-│   └── benchmark_comparison.csv
-│
-└── README.md
+└── visualization/
 ```
 
----
+## Requirements
 
-# Installation
-
-Clone the repository:
+Python 3.9 or later is recommended.
 
 ```bash
-git clone https://github.com/aasifsajad0100/HAOA-Hybrid-Adaptive-Optimization-Algorithm.git
+python -m venv .venv
+source .venv/bin/activate        # Windows: .venv\Scripts\activate
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt
 ```
 
-Move into the project directory:
+## Run the complete benchmark suite
 
-```bash
-cd HAOA-Hybrid-Adaptive-Optimization-Algorithm
-```
-
-Install dependencies:
-
-```bash
-pip install -r requirements.txt
-```
-
----
-
-# Run Benchmark Tests
-
-Run the full benchmark framework:
-
-```bash
-python -m HAOA.experiments.dataset_comparison
-```
-
-Or run the complete experiment pipeline:
+Run from the repository root:
 
 ```bash
 python -m HAOA.experiments.full_runner
 ```
 
----
+The runner evaluates the five benchmark functions and writes:
+- `HAOA/results/csv/summary.csv`
+- `HAOA/results/csv/convergence.csv`
+- `HAOA/results/figures/convergence_plot.png`
+- `HAOA/results/figures/score_plot.png`
 
-# Generated Outputs
+To compare HAOA with the included PSO implementation:
 
-The framework automatically generates:
-
-- CSV benchmark reports
-- Convergence plots
-- Benchmark comparison graphs
-- Runtime statistics
-- Optimization logs
-
-Generated outputs are stored in:
-
-```text
-results/
+```bash
+python -m HAOA.experiments.dataset_comparison
 ```
 
-and
+## Use HAOA directly
 
-```text
-HAOA/results/
+```python
+import numpy as np
+from HAOA.algorithm.haoa import HAOA
+
+def sphere(x):
+    return np.sum(x ** 2)
+
+optimizer = HAOA(
+    objective_function=sphere,
+    dimension=10,
+    lower_bound=-5.12,
+    upper_bound=5.12,
+    population_size=40,
+    max_iterations=200,
+    random_state=42,
+)
+result = optimizer.optimize()
+print(result["best_score"])
+print(result["best_solution"])
 ```
 
----
+The objective function must accept a one-dimensional NumPy array and return a finite scalar. The optimizer minimizes the objective and enforces the supplied bounds.
 
-# Sample Benchmark Results
+## Tests
 
-| Function | HAOA | PSO | Winner |
-|---|---|---|---|
-| Rastrigin | 242.11 | 74.56 | PSO |
-| Ackley | 1.70 | 13.94 | HAOA |
-| Griewank | 0.051 | 0.016 | PSO |
-| Rosenbrock | 119.00 | 3142.11 | HAOA |
+Install the requirements and run:
 
----
+```bash
+python -m pytest
+```
 
-# Sample Convergence Plot
+## Research note
 
-![HAOA vs PSO](results/figures/haoa_vs_pso.png)
-
----
-
-# Research Motivation
-
-HAOA was designed to improve optimization performance on difficult nonlinear and multimodal landscapes by combining:
-
-- adaptive exploration
-- guided exploitation
-- stochastic mutation
-- dynamic learning strategies
-- stagnation escape mechanisms
-
-The algorithm is especially effective on:
-- deceptive valleys
-- rugged landscapes
-- highly nonlinear optimization problems
-
----
-
-# Future Improvements
-
-Planned future extensions include:
-
-- Genetic Algorithm comparison
-- Differential Evolution integration
-- Statistical benchmarking
-- Multi-objective optimization
-- Deep learning hyperparameter optimization
-- Parallel optimization support
-
----
-
-# Author
-
-Aasif Sajad
-
-GitHub:
-https://github.com/aasifsajad0100
+Benchmark scores depend on the random seed, search budget, dimensionality, and bounds. The repository does not treat historical sample numbers as guaranteed outcomes; report aggregate results over multiple independent seeds when making comparative research claims.
